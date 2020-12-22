@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.yeyupiaoling.cameraxapp.FocusImageView
+        android:id="@+id/focus_view"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        app:focus_fail_id="@drawable/focus_focus_failed"
+        app:focus_focusing_id="@drawable/focus_focusing"
+        app:focus_success_id="@drawable/focus_focused" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="20dp">
+
+        <ImageButton
+            android:id="@+id/camera_switch_button"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="20dp"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_switch" />
+
+        <ImageButton
+            android:id="@+id/camera_capture_button"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/ic_shutter"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/photo_view_button"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="20dp"
+            android:padding="4dp"
+            android:background="@drawable/ic_outer_circle"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_photo" />
+    </RelativeLayout>
+
+
+</FrameLayout>
