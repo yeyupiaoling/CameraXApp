@@ -13,7 +13,6 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import com.blankj.utilcode.util.PathUtils
 import com.bumptech.glide.Glide
@@ -75,11 +74,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         photo_view_button.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW)
-            val uri = Uri.fromFile(File(PathUtils.getExternalAppPicturesPath()))
-            intent.addCategory(Intent.CATEGORY_DEFAULT)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.setDataAndType(uri, "image/*")
+            val intent = Intent(this@MainActivity, AlbumActivity::class.java)
             startActivity(intent)
         }
 
