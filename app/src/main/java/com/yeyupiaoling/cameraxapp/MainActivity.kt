@@ -77,12 +77,21 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, AlbumActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
 
         // 显示最新的图像
         val images = Utils.getFilesAllName(PathUtils.getExternalAppPicturesPath())
         if (images.isNotEmpty()) {
             Glide.with(this@MainActivity)
                 .load(images[images.size - 1])
+                .apply(RequestOptions.circleCropTransform())
+                .into(photo_view_button)
+        }else{
+            Glide.with(this@MainActivity)
+                .load(R.drawable.ic_photo)
                 .apply(RequestOptions.circleCropTransform())
                 .into(photo_view_button)
         }

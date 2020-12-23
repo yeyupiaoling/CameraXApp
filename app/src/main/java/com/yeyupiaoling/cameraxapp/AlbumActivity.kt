@@ -29,12 +29,6 @@ class AlbumActivity : AppCompatActivity() {
 
         gestureDetector = GestureDetector(onGestureListener)
 
-        // 显示最新的图像
-        images = Utils.getFilesAllName(PathUtils.getExternalAppPicturesPath())
-        if (images.isNotEmpty()) {
-            Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
-        }
-
         // 删除图片
         delete_btn.setOnClickListener {
             val file = File(images[count])
@@ -48,6 +42,26 @@ class AlbumActivity : AppCompatActivity() {
                 if (count < 0) count = 0
                 Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
             }
+        }
+
+
+        // 显示最新的图像
+        images = Utils.getFilesAllName(PathUtils.getExternalAppPicturesPath())
+        if (images.isNotEmpty()) {
+            Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
+        }else{
+            Toast.makeText(this@AlbumActivity, "没有照片了！", Toast.LENGTH_SHORT).show()
+            finish()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // 显示最新的图像
+        images = Utils.getFilesAllName(PathUtils.getExternalAppPicturesPath())
+        if (images.isNotEmpty()) {
+            Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
         }
     }
 
