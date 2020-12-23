@@ -45,6 +45,7 @@ class AlbumActivity : AppCompatActivity() {
                 finish()
             } else {
                 count--
+                if (count < 0) count = 0
                 Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
             }
         }
@@ -69,15 +70,11 @@ class AlbumActivity : AppCompatActivity() {
                 val x = e1.x - e2.x
                 if (x > 0) {
                     // 最大值
-                    if (count == images.size - 1) {
-                        return true
-                    }
+                    if (count == images.size - 1) return true
                     count++
                 } else if (x < 0) {
                     // 最小值
-                    if (count == 0) {
-                        return true
-                    }
+                    if (count == 0) return true
                     count--
                 }
                 //切换imageView的图片
