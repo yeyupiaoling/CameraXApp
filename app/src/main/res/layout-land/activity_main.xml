@@ -20,41 +20,43 @@
         app:focus_success_id="@drawable/focus_focused" />
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp">
 
-        <ImageButton
-            android:id="@+id/camera_switch_button"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="20dp"
-            android:background="@android:color/transparent"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/ic_switch" />
-
-        <ImageButton
-            android:id="@+id/camera_capture_button"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:background="@drawable/ic_shutter"
-            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/photo_view_button"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="20dp"
-            android:padding="4dp"
+            android:layout_centerHorizontal="true"
             android:background="@drawable/ic_outer_circle"
+            android:padding="4dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_photo" />
+
+        <ImageButton
+            android:id="@+id/camera_capture_button"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerVertical="true"
+            android:background="@drawable/ic_shutter"
+            android:scaleType="fitCenter" />
+
+
+        <ImageButton
+            android:id="@+id/camera_switch_button"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_switch" />
+
     </RelativeLayout>
 
     <View

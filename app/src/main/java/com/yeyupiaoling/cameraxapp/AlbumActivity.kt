@@ -3,6 +3,8 @@ package com.yeyupiaoling.cameraxapp
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.blankj.utilcode.util.PathUtils
@@ -25,6 +27,12 @@ class AlbumActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 隐藏状态栏
+        val flag = WindowManager.LayoutParams.FLAG_FULLSCREEN
+        // 获得当前窗体对象
+        val window: Window = this@AlbumActivity.window
+        // 设置当前窗体为全屏显示
+        window.setFlags(flag, flag)
         setContentView(R.layout.activity_album)
 
         gestureDetector = GestureDetector(onGestureListener)

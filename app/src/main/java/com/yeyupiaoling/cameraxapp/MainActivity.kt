@@ -1,12 +1,17 @@
 package com.yeyupiaoling.cameraxapp
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -18,6 +23,7 @@ import com.blankj.utilcode.util.PathUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.common.util.concurrent.ListenableFuture
+import com.yeyupiaoling.cameraxapp.utils.YuvToRgbConverter
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.util.*
@@ -31,10 +37,15 @@ class MainActivity : AppCompatActivity() {
     private var mCameraControl: CameraControl? = null
     private var mCameraInfo: CameraInfo? = null
     private var focusView: FocusImageView? = null
+    private var isInfer = false
+    private var imageRotationDegrees: Int = 0
 
     // 使用后摄像头
     private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var bitmapBuffer: Bitmap
+    private lateinit var converter: YuvToRgbConverter
 
     companion object {
         private const val TAG = "MainActivity"
@@ -45,6 +56,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 隐藏状态栏
+        val flag = WindowManager.LayoutParams.FLAG_FULLSCREEN
+        // 获得当前窗体对象
+        val window: Window = this@MainActivity.window
+        // 设置当前窗体为全屏显示
+        window.setFlags(flag, flag)
         setContentView(R.layout.activity_main)
 
         // 对焦框控件
@@ -61,6 +78,9 @@ class MainActivity : AppCompatActivity() {
         camera_capture_button.setOnClickListener { takePhoto() }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        // 把图像数据转换为RGB格式图像
+        converter = YuvToRgbConverter(this)
 
         // 切换摄像头
         camera_switch_button.setOnClickListener {
@@ -89,7 +109,7 @@ class MainActivity : AppCompatActivity() {
                 .load(images[images.size - 1])
                 .apply(RequestOptions.circleCropTransform())
                 .into(photo_view_button)
-        }else{
+        } else {
             Glide.with(this@MainActivity)
                 .load(R.drawable.ic_photo)
                 .apply(RequestOptions.circleCropTransform())
@@ -105,16 +125,29 @@ class MainActivity : AppCompatActivity() {
             // 绑定生命周期
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            // 预览
+            // 设置相机支持预览
             val preview = Preview.Builder().build()
             preview.setSurfaceProvider(viewFinder.surfaceProvider);
 
+            // 设置相机支持拍照
             imageCapture = ImageCapture.Builder()
                 // 设置闪光灯
                 .setFlashMode(ImageCapture.FLASH_MODE_OFF)
                 // 设置照片质量
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                 .build()
+
+            // 设置相机支持图像分析
+            val imageAnalysis = ImageAnalysis.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+
+            // 实时获取图像进行分析
+            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), { image ->
+                // 执行人脸检测
+                infer(image)
+            })
 
             try {
                 // 在重新绑定之前取消绑定用例
@@ -132,6 +165,27 @@ class MainActivity : AppCompatActivity() {
             }
 
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    // 人脸检测
+    @SuppressLint("UnsafeExperimentalUsageError")
+    private fun infer(image: ImageProxy) {
+        if (!::bitmapBuffer.isInitialized) {
+            imageRotationDegrees = image.imageInfo.rotationDegrees
+            Log.d("测试", "方向：$imageRotationDegrees")
+            bitmapBuffer = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
+        }
+
+        // 将图像转换为RGB，并将其放在bitmapBuffer
+        image.use { converter.yuvToRgb(image.image!!, bitmapBuffer) }
+
+        // 画框
+        (box_prediction.layoutParams as ViewGroup.MarginLayoutParams).apply {
+            topMargin = 20
+            leftMargin = 30
+            width = 400
+            height = 500
+        }
     }
 
     // 拍照
