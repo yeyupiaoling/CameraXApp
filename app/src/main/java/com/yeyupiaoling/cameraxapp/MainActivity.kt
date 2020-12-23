@@ -23,7 +23,10 @@ import com.blankj.utilcode.util.PathUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.common.util.concurrent.ListenableFuture
+import com.yeyupiaoling.cameraxapp.utils.Utils
 import com.yeyupiaoling.cameraxapp.utils.YuvToRgbConverter
+import com.yeyupiaoling.cameraxapp.view.CameraXPreviewViewTouchListener
+import com.yeyupiaoling.cameraxapp.view.FocusImageView
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.util.*
@@ -145,8 +148,10 @@ class MainActivity : AppCompatActivity() {
 
             // 实时获取图像进行分析
             imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), { image ->
-                // 执行人脸检测
-                infer(image)
+                if (isInfer){
+                    // 执行人脸检测
+                    infer(image)
+                }
             })
 
             try {
@@ -155,7 +160,7 @@ class MainActivity : AppCompatActivity() {
 
                 // 将用例绑定到摄像机
                 val camera: Camera =
-                    cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
+                    cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture, imageAnalysis)
                 // 相机控制，如点击
                 mCameraControl = camera.cameraControl
                 mCameraInfo = camera.cameraInfo

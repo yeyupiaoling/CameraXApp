@@ -1,4 +1,4 @@
-package com.yeyupiaoling.cameraxapp
+package com.yeyupiaoling.cameraxapp.view
 
 import android.content.Context
 import android.graphics.Point
@@ -8,6 +8,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import androidx.appcompat.widget.AppCompatImageView
+import com.yeyupiaoling.cameraxapp.R
 
 /**
  * 对焦动图显示

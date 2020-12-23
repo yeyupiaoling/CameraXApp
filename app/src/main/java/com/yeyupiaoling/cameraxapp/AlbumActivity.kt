@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.blankj.utilcode.util.PathUtils
 import com.bumptech.glide.Glide
+import com.yeyupiaoling.cameraxapp.utils.Utils
 import kotlinx.android.synthetic.main.activity_album.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File

@@ -1,4 +1,4 @@
-package com.yeyupiaoling.cameraxapp
+package com.yeyupiaoling.cameraxapp.utils
 
 import java.io.File
 import java.lang.Exception

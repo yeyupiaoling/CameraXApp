@@ -1,4 +1,4 @@
-package com.yeyupiaoling.cameraxapp
+package com.yeyupiaoling.cameraxapp.view
 
 import android.content.Context
 import android.view.GestureDetector
