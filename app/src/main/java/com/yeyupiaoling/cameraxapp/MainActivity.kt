@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private var focusView: FocusImageView? = null
     private var isInfer = false
     private var imageRotationDegrees: Int = 0
+    private var flashMode: Int = ImageCapture.FLASH_MODE_OFF
 
     // 使用后摄像头
     private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -96,9 +97,30 @@ class MainActivity : AppCompatActivity() {
             startCamera()
         }
 
+        // 打开自定义相册
         photo_view_button.setOnClickListener {
             val intent = Intent(this@MainActivity, AlbumActivity::class.java)
             startActivity(intent)
+        }
+
+        // 切换闪光灯模式
+        flash_switch_button.setOnClickListener {
+            when (flashMode) {
+                ImageCapture.FLASH_MODE_OFF -> {
+                    flashMode = ImageCapture.FLASH_MODE_ON
+                    flash_switch_button.setImageResource(R.drawable.open_flash)
+                }
+                ImageCapture.FLASH_MODE_ON -> {
+                    flashMode = ImageCapture.FLASH_MODE_AUTO
+                    flash_switch_button.setImageResource(R.drawable.auto_flash)
+                }
+                ImageCapture.FLASH_MODE_AUTO -> {
+                    flashMode = ImageCapture.FLASH_MODE_OFF
+                    flash_switch_button.setImageResource(R.drawable.stop_flash)
+                }
+            }
+            // 重启相机
+            startCamera()
         }
     }
 
@@ -135,7 +157,7 @@ class MainActivity : AppCompatActivity() {
             // 设置相机支持拍照
             imageCapture = ImageCapture.Builder()
                 // 设置闪光灯
-                .setFlashMode(ImageCapture.FLASH_MODE_OFF)
+                .setFlashMode(flashMode)
                 // 设置照片质量
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                 .build()
@@ -148,7 +170,7 @@ class MainActivity : AppCompatActivity() {
 
             // 实时获取图像进行分析
             imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), { image ->
-                if (isInfer){
+                if (isInfer) {
                     // 执行人脸检测
                     infer(image)
                 }
@@ -160,7 +182,13 @@ class MainActivity : AppCompatActivity() {
 
                 // 将用例绑定到摄像机
                 val camera: Camera =
-                    cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture, imageAnalysis)
+                    cameraProvider.bindToLifecycle(
+                        this,
+                        cameraSelector,
+                        preview,
+                        imageCapture,
+                        imageAnalysis
+                    )
                 // 相机控制，如点击
                 mCameraControl = camera.cameraControl
                 mCameraInfo = camera.cameraInfo
