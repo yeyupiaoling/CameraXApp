@@ -1,5 +1,6 @@
 package com.yeyupiaoling.cameraxapp.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
@@ -18,6 +19,7 @@ class CameraXPreviewViewTouchListener(context: Context?) : OnTouchListener {
     private var mCustomTouchListener: CustomTouchListener? = null
     private val mScaleGestureDetector: ScaleGestureDetector
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         mScaleGestureDetector.onTouchEvent(event)
         if (!mScaleGestureDetector.isInProgress) {
@@ -32,7 +34,7 @@ class CameraXPreviewViewTouchListener(context: Context?) : OnTouchListener {
     }
 
     // 缩放监听
-    var onScaleGestureListener: OnScaleGestureListener = object : SimpleOnScaleGestureListener() {
+    private var onScaleGestureListener: OnScaleGestureListener = object : SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val delta = detector.scaleFactor
             if (mCustomTouchListener != null) {
@@ -43,7 +45,7 @@ class CameraXPreviewViewTouchListener(context: Context?) : OnTouchListener {
     }
 
     // 点击监听
-    var onGestureListener: SimpleOnGestureListener = object : SimpleOnGestureListener() {
+    private var onGestureListener: SimpleOnGestureListener = object : SimpleOnGestureListener() {
         override fun onLongPress(e: MotionEvent) {
             if (mCustomTouchListener != null) {
                 // 长按
@@ -52,7 +54,7 @@ class CameraXPreviewViewTouchListener(context: Context?) : OnTouchListener {
         }
 
         override fun onFling(
-            e1: MotionEvent,
+            e1: MotionEvent?,
             e2: MotionEvent,
             velocityX: Float,
             velocityY: Float
@@ -94,6 +96,6 @@ class CameraXPreviewViewTouchListener(context: Context?) : OnTouchListener {
 
     init {
         mGestureDetector = GestureDetector(context, onGestureListener)
-        mScaleGestureDetector = ScaleGestureDetector(context, onScaleGestureListener)
+        mScaleGestureDetector = ScaleGestureDetector(context!!, onScaleGestureListener)
     }
 }

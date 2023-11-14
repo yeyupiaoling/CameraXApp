@@ -9,13 +9,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.blankj.utilcode.util.PathUtils
 import com.bumptech.glide.Glide
+import com.yeyupiaoling.cameraxapp.databinding.ActivityAlbumBinding
 import com.yeyupiaoling.cameraxapp.utils.Utils
-import kotlinx.android.synthetic.main.activity_album.*
-import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
 
 class AlbumActivity : AppCompatActivity() {
+    lateinit var binding: ActivityAlbumBinding
 
     // 图片数组
     private var images: List<String> = ArrayList()
@@ -28,18 +28,19 @@ class AlbumActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityAlbumBinding.inflate(layoutInflater)
         // 隐藏状态栏
         val flag = WindowManager.LayoutParams.FLAG_FULLSCREEN
         // 获得当前窗体对象
         val window: Window = this@AlbumActivity.window
         // 设置当前窗体为全屏显示
         window.setFlags(flag, flag)
-        setContentView(R.layout.activity_album)
+        setContentView(binding.root)
 
         gestureDetector = GestureDetector(onGestureListener)
 
         // 删除图片
-        delete_btn.setOnClickListener {
+        binding.deleteBtn.setOnClickListener {
             val file = File(images[count])
             file.delete()
             images = images - images[count]
@@ -49,7 +50,7 @@ class AlbumActivity : AppCompatActivity() {
             } else {
                 count--
                 if (count < 0) count = 0
-                Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
+                Glide.with(this@AlbumActivity).load(images[count]).into(binding.imageView)
             }
         }
 
@@ -57,7 +58,7 @@ class AlbumActivity : AppCompatActivity() {
         // 显示最新的图像
         images = Utils.getFilesAllName(PathUtils.getExternalAppPicturesPath())
         if (images.isNotEmpty()) {
-            Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
+            Glide.with(this@AlbumActivity).load(images[count]).into(binding.imageView)
         }else{
             Toast.makeText(this@AlbumActivity, "没有照片了！", Toast.LENGTH_SHORT).show()
             finish()
@@ -70,13 +71,13 @@ class AlbumActivity : AppCompatActivity() {
         // 显示最新的图像
         images = Utils.getFilesAllName(PathUtils.getExternalAppPicturesPath())
         if (images.isNotEmpty()) {
-            Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
+            Glide.with(this@AlbumActivity).load(images[count]).into(binding.imageView)
         }
     }
 
     //当Activity被触摸时回调
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        return gestureDetector!!.onTouchEvent(event)
+        return gestureDetector!!.onTouchEvent(event!!)
     }
 
     //自定义GestureDetector的手势识别监听器
@@ -84,13 +85,13 @@ class AlbumActivity : AppCompatActivity() {
         object : GestureDetector.SimpleOnGestureListener() {
             //当识别的手势是滑动手势时回调onFinger方法
             override fun onFling(
-                e1: MotionEvent,
+                e1: MotionEvent?,
                 e2: MotionEvent,
                 velocityX: Float,
                 velocityY: Float
             ): Boolean {
                 //通过计算判断是向左还是向右滑动
-                val x = e1.x - e2.x
+                val x = e1!!.x - e2.x
                 if (x > 0) {
                     // 最大值
                     if (count == images.size - 1) return true
@@ -101,7 +102,7 @@ class AlbumActivity : AppCompatActivity() {
                     count--
                 }
                 //切换imageView的图片
-                Glide.with(this@AlbumActivity).load(images[count]).into(imageView)
+                Glide.with(this@AlbumActivity).load(images[count]).into(binding.imageView)
                 return true
             }
         }

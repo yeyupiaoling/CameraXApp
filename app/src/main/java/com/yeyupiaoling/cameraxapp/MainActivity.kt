@@ -1,7 +1,6 @@
 package com.yeyupiaoling.cameraxapp
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -14,7 +13,19 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraControl
+import androidx.camera.core.CameraInfo
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.FocusMeteringResult
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.core.ZoomState
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -23,13 +34,11 @@ import com.blankj.utilcode.util.PathUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.common.util.concurrent.ListenableFuture
+import com.yeyupiaoling.cameraxapp.databinding.ActivityMainBinding
 import com.yeyupiaoling.cameraxapp.utils.Utils
 import com.yeyupiaoling.cameraxapp.utils.YuvToRgbConverter
 import com.yeyupiaoling.cameraxapp.view.CameraXPreviewViewTouchListener
-import com.yeyupiaoling.cameraxapp.view.FocusImageView
-import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
-import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -39,7 +48,6 @@ class MainActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
     private var mCameraControl: CameraControl? = null
     private var mCameraInfo: CameraInfo? = null
-    private var focusView: FocusImageView? = null
     private var isInfer = false
     private var imageRotationDegrees: Int = 0
     private var flashMode: Int = ImageCapture.FLASH_MODE_OFF
@@ -50,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var bitmapBuffer: Bitmap
     private lateinit var converter: YuvToRgbConverter
+    lateinit var binding: ActivityMainBinding
 
     companion object {
         private const val TAG = "MainActivity"
@@ -60,16 +69,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         // 隐藏状态栏
         val flag = WindowManager.LayoutParams.FLAG_FULLSCREEN
         // 获得当前窗体对象
         val window: Window = this@MainActivity.window
         // 设置当前窗体为全屏显示
         window.setFlags(flag, flag)
-        setContentView(R.layout.activity_main)
-
-        // 对焦框控件
-        focusView = findViewById(R.id.focus_view)
+        setContentView(binding.root)
 
         // 请求权限
         if (allPermissionsGranted()) {
@@ -79,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 点击拍照
-        camera_capture_button.setOnClickListener { takePhoto() }
+        binding.cameraCaptureButton.setOnClickListener { takePhoto() }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
@@ -87,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         converter = YuvToRgbConverter(this)
 
         // 切换摄像头
-        camera_switch_button.setOnClickListener {
+        binding.cameraSwitchButton.setOnClickListener {
             cameraSelector = if (CameraSelector.DEFAULT_FRONT_CAMERA == cameraSelector) {
                 CameraSelector.DEFAULT_BACK_CAMERA
             } else {
@@ -98,25 +105,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 打开自定义相册
-        photo_view_button.setOnClickListener {
+        binding.photoViewButton.setOnClickListener {
             val intent = Intent(this@MainActivity, AlbumActivity::class.java)
             startActivity(intent)
         }
 
         // 切换闪光灯模式
-        flash_switch_button.setOnClickListener {
+        binding.flashSwitchButton.setOnClickListener {
             when (flashMode) {
                 ImageCapture.FLASH_MODE_OFF -> {
                     flashMode = ImageCapture.FLASH_MODE_ON
-                    flash_switch_button.setImageResource(R.drawable.open_flash)
+                    binding.flashSwitchButton.setImageResource(R.drawable.open_flash)
                 }
+
                 ImageCapture.FLASH_MODE_ON -> {
                     flashMode = ImageCapture.FLASH_MODE_AUTO
-                    flash_switch_button.setImageResource(R.drawable.auto_flash)
+                    binding.flashSwitchButton.setImageResource(R.drawable.auto_flash)
                 }
+
                 ImageCapture.FLASH_MODE_AUTO -> {
                     flashMode = ImageCapture.FLASH_MODE_OFF
-                    flash_switch_button.setImageResource(R.drawable.stop_flash)
+                    binding.flashSwitchButton.setImageResource(R.drawable.stop_flash)
                 }
             }
             // 重启相机
@@ -133,12 +142,12 @@ class MainActivity : AppCompatActivity() {
             Glide.with(this@MainActivity)
                 .load(images[images.size - 1])
                 .apply(RequestOptions.circleCropTransform())
-                .into(photo_view_button)
+                .into(binding.photoViewButton)
         } else {
             Glide.with(this@MainActivity)
                 .load(R.drawable.ic_photo)
                 .apply(RequestOptions.circleCropTransform())
-                .into(photo_view_button)
+                .into(binding.photoViewButton)
         }
     }
 
@@ -152,7 +161,7 @@ class MainActivity : AppCompatActivity() {
 
             // 设置相机支持预览
             val preview = Preview.Builder().build()
-            preview.setSurfaceProvider(viewFinder.surfaceProvider);
+            preview.setSurfaceProvider(binding.viewFinder.surfaceProvider);
 
             // 设置相机支持拍照
             imageCapture = ImageCapture.Builder()
@@ -169,12 +178,12 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
             // 实时获取图像进行分析
-            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), { image ->
+            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this)) { image ->
                 if (isInfer) {
                     // 执行人脸检测
                     infer(image)
                 }
-            })
+            }
 
             try {
                 // 在重新绑定之前取消绑定用例
@@ -201,7 +210,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 人脸检测
-    @SuppressLint("UnsafeExperimentalUsageError")
     private fun infer(image: ImageProxy) {
         if (!::bitmapBuffer.isInitialized) {
             imageRotationDegrees = image.imageInfo.rotationDegrees
@@ -213,7 +221,7 @@ class MainActivity : AppCompatActivity() {
         image.use { converter.yuvToRgb(image.image!!, bitmapBuffer) }
 
         // 画框
-        (box_prediction.layoutParams as ViewGroup.MarginLayoutParams).apply {
+        (binding.boxPrediction.layoutParams as ViewGroup.MarginLayoutParams).apply {
             topMargin = 20
             leftMargin = 30
             width = 400
@@ -248,7 +256,7 @@ class MainActivity : AppCompatActivity() {
                     Glide.with(this@MainActivity)
                         .load(savedUri)
                         .apply(RequestOptions.circleCropTransform())
-                        .into(photo_view_button)
+                        .into(binding.photoViewButton)
                 }
             })
     }
@@ -272,7 +280,7 @@ class MainActivity : AppCompatActivity() {
             // 点击操作
             override fun click(x: Float, y: Float) {
                 Log.d(TAG, "单击")
-                val factory = viewFinder.meteringPointFactory
+                val factory = binding.viewFinder.meteringPointFactory
                 // 设置对焦位置
                 val point = factory.createPoint(x, y)
                 val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
@@ -280,19 +288,20 @@ class MainActivity : AppCompatActivity() {
                     .setAutoCancelDuration(3, TimeUnit.SECONDS)
                     .build()
                 // 执行对焦
-                focusView!!.startFocus(Point(x.toInt(), y.toInt()))
+                binding.focusView.startFocus(Point(x.toInt(), y.toInt()))
                 val future: ListenableFuture<*> = mCameraControl!!.startFocusAndMetering(action)
                 future.addListener({
                     try {
                         // 获取对焦结果
                         val result = future.get() as FocusMeteringResult
                         if (result.isFocusSuccessful) {
-                            focusView!!.onFocusSuccess()
+                            binding.focusView.onFocusSuccess()
                         } else {
-                            focusView!!.onFocusFailed()
+                            binding.focusView.onFocusFailed()
                         }
                     } catch (e: java.lang.Exception) {
                         Log.e(TAG, e.toString())
+                        binding.focusView.onFocusFailed()
                     }
                 }, ContextCompat.getMainExecutor(this@MainActivity))
             }
@@ -314,7 +323,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
         // 添加监听事件
-        viewFinder.setOnTouchListener(cameraXPreviewViewTouchListener)
+        binding.viewFinder.setOnTouchListener(cameraXPreviewViewTouchListener)
     }
 
     override fun onDestroy() {
@@ -334,6 +343,7 @@ class MainActivity : AppCompatActivity() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera()

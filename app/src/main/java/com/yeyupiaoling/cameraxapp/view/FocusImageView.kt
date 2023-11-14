@@ -3,6 +3,7 @@ package com.yeyupiaoling.cameraxapp.view
 import android.content.Context
 import android.graphics.Point
 import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -23,12 +24,12 @@ class FocusImageView : AppCompatImageView {
     constructor(context: Context?) : super(context!!) {
         mAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.focusview_show)
         visibility = GONE
-        mHandler = Handler()
+        mHandler = Handler(Looper.getMainLooper())
     }
 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         mAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.focusview_show)
-        mHandler = Handler()
+        mHandler = Handler(Looper.getMainLooper())
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.FocusImageView)
         mFocusImg = typedArray.getResourceId(R.styleable.FocusImageView_focus_focusing_id, NO_ID)
         mFocusSucceedImg =
@@ -66,7 +67,7 @@ class FocusImageView : AppCompatImageView {
     fun onFocusSuccess() {
         setImageResource(mFocusSucceedImg)
         //移除在startFocus中设置的callback，1秒后隐藏该控件
-        mHandler.removeCallbacks(null, null)
+        mHandler.removeCallbacks({}, null)
         mHandler.postDelayed({ visibility = GONE }, 1000)
     }
 
@@ -76,7 +77,7 @@ class FocusImageView : AppCompatImageView {
     fun onFocusFailed() {
         setImageResource(mFocusFailedImg)
         //移除在startFocus中设置的callback，1秒后隐藏该控件
-        mHandler.removeCallbacks(null, null)
+        mHandler.removeCallbacks({}, null)
         mHandler.postDelayed({ visibility = GONE }, 1000)
     }
 
